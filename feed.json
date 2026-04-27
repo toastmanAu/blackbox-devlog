@@ -1,0 +1,20 @@
+{
+  "version": "https://jsonfeed.org/version/1.1",
+  "title": "blackbox devlog",
+  "home_page_url": "https://blackbox.wyltekindustries.com",
+  "feed_url": "https://blackbox.wyltekindustries.com/feed.json",
+  "description": "Dev log for the BlackBox CKB point-of-sale device.",
+  "items": [
+    {
+      "id": "https://blackbox.wyltekindustries.com/2026-04-27-hello-world",
+      "url": "https://blackbox.wyltekindustries.com/2026-04-27-hello-world",
+      "title": "Hello, wave 2",
+      "content_text": "Opening entry. Wave 1 (six testing units) shipped; wave 2 starts now.",
+      "date_published": "2026-04-27T00:00:00.000Z",
+      "tags": [
+        "wave-2",
+        "meta"
+      ]
+    }
+  ]
+}
