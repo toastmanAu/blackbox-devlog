@@ -1,0 +1,16 @@
+# Claude Code harness scratch — never committed
+.claude/
+.remember/
+
+# Node
+node_modules/
+dist/
+.astro/
+*.log
+.env
+.env.*
+!.env.example
+
+# OS
+.DS_Store
+Thumbs.db
