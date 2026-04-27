@@ -1,0 +1,23 @@
+---
+import Base from './Base.astro';
+interface Props {
+  title: string;
+  date: Date;
+  summary?: string;
+  tags?: string[];
+  tweetUrl?: string;
+}
+const { title, date, summary, tags = [], tweetUrl } = Astro.props;
+const dateStr = date.toISOString().slice(0, 10);
+---
+<Base title={`${title} — blackbox devlog`} description={summary}>
+  <article>
+    <h1>{title}</h1>
+    <p class="meta">
+      <time datetime={date.toISOString()}>{dateStr}</time>
+      {tags.length > 0 && <span> · {tags.map((t) => <span class="tag">{t}</span>)}</span>}
+      {tweetUrl && <span> · <a href={tweetUrl}>tweet</a></span>}
+    </p>
+    <slot />
+  </article>
+</Base>

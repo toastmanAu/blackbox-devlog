@@ -1,0 +1,24 @@
+---
+import '../styles/global.css';
+interface Props { title: string; description?: string; }
+const { title, description = 'Dev log for the BlackBox CKB point-of-sale device.' } = Astro.props;
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="alternate" type="application/rss+xml" title="BlackBox devlog RSS" href="/rss.xml" />
+    <link rel="alternate" type="application/feed+json" title="BlackBox devlog feed" href="/feed.json" />
+  </head>
+  <body>
+    <main>
+      <slot />
+      <footer>
+        <a href="/">blackbox devlog</a> · <a href="/rss.xml">rss</a> · <a href="/feed.json">json</a> · <a href="https://github.com/toastmanau/blackbox-devlog">source</a>
+      </footer>
+    </main>
+  </body>
+</html>
