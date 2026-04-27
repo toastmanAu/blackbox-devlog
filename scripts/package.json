@@ -1,0 +1,19 @@
+{
+  "name": "blackbox-devlog-scripts",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "gray-matter": "^4.0.3",
+    "twitter-api-v2": "^1.18.2",
+    "twitter-text": "^3.1.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "vitest": "^1.6.0"
+  }
+}
