@@ -13,5 +13,9 @@
     "@astrojs/rss": "^4.0.7",
     "astro": "^4.16.0",
     "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.8",
+    "typescript": "^5.9.3"
   }
 }
