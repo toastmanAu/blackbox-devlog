@@ -1,0 +1,14 @@
+{
+  "name": "blackbox-devlog",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Dev log for the BlackBox CKB point-of-sale device.",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "workspaces": [
+    "scripts",
+    "site"
+  ]
+}
