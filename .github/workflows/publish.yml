@@ -1,0 +1,99 @@
+name: publish
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'entries/**'
+      - 'site/**'
+      - 'scripts/**'
+      - 'shared/**'
+      - '.github/workflows/publish.yml'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'If true, log would-be tweets without posting.'
+        type: boolean
+        default: false
+
+concurrency:
+  group: publish
+  cancel-in-progress: false
+
+jobs:
+  detect:
+    runs-on: ubuntu-latest
+    outputs:
+      unposted: ${{ steps.run.outputs.unposted }}
+      count: ${{ steps.run.outputs.count }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: install scripts deps
+        working-directory: scripts
+        run: npm ci
+      - id: run
+        name: detect unposted
+        run: node scripts/detect-unposted.mjs
+
+  tweet:
+    needs: detect
+    if: needs.detect.outputs.count > 0
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: install scripts deps
+        working-directory: scripts
+        run: npm ci
+      - name: post to twitter
+        env:
+          UNPOSTED: ${{ needs.detect.outputs.unposted }}
+          TWITTER_HANDLE: blackbox
+          TWITTER_API_KEY: ${{ secrets.TWITTER_API_KEY }}
+          TWITTER_API_SECRET: ${{ secrets.TWITTER_API_SECRET }}
+          TWITTER_ACCESS_TOKEN: ${{ secrets.TWITTER_ACCESS_TOKEN }}
+          TWITTER_ACCESS_SECRET: ${{ secrets.TWITTER_ACCESS_SECRET }}
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || 'false' }}
+        run: node scripts/post-to-twitter.mjs
+      - name: commit lockfile
+        if: github.event_name != 'workflow_dispatch' || inputs.dry_run != true
+        run: |
+          git config user.name "blackbox-devlog-bot"
+          git config user.email "noreply@wyltekindustries.com"
+          git add .published.json
+          if git diff --staged --quiet; then
+            echo "lockfile unchanged"
+          else
+            git commit -m "publish: update lockfile [skip ci]"
+            git push
+          fi
+
+  build-and-deploy:
+    needs: detect
+    if: always()
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: install site deps
+        working-directory: site
+        run: npm ci
+      - name: build site
+        working-directory: site
+        run: npm run build
+      - name: deploy to gh-pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./site/dist
+          cname: blackbox.wyltekindustries.com
