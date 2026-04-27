@@ -1,0 +1,2 @@
+PLACEHOLDER — replace with hero.png before authoring real entries.
+This file exists only so the per-entry-folder convention is visible from the start.
