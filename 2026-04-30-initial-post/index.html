@@ -1,0 +1,43 @@
+<!DOCTYPE html><html lang="en"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Fortnightly #1: UI primitives and the open-source backend stack — blackbox devlog</title><meta name="description" content="First fortnightly entry. UI redesign steps 1–3 of PLAN.md complete; eight weeks of backend protocol design surfaced as open-source repos; new hardware components unlock NFC and integrated light client paths."><link rel="alternate" type="application/rss+xml" title="BlackBox devlog RSS" href="/rss.xml"><link rel="alternate" type="application/feed+json" title="BlackBox devlog feed" href="/feed.json"><style>:root{--bg: #0d0d0f;--fg: #e6e6e6;--fg-dim: #9a9a9a;--accent: #ff8c42;--rule: #2a2a2e;--max: 64ch;--gap: 8px;--radius: 4px;--font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;--font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif}*{box-sizing:border-box}html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);font-family:var(--font-sans);line-height:1.55;font-size:16px}main{max-width:var(--max);margin:0 auto;padding:calc(var(--gap) * 6) calc(var(--gap) * 3)}a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}h1,h2,h3{font-family:var(--font-mono);font-weight:600;line-height:1.2;letter-spacing:-.01em}h1{font-size:1.75rem;margin:0 0 calc(var(--gap) * 2)}h2{font-size:1.25rem;margin:calc(var(--gap) * 4) 0 var(--gap)}.meta{color:var(--fg-dim);font-family:var(--font-mono);font-size:.875rem}.tag{display:inline-block;padding:2px 6px;margin-right:4px;border:1px solid var(--rule);border-radius:var(--radius);font-family:var(--font-mono);font-size:.75rem;color:var(--fg-dim)}.entry-card{border-top:1px solid var(--rule);padding:calc(var(--gap) * 3) 0}.entry-card:last-child{border-bottom:1px solid var(--rule)}.entry-card img{max-width:100%;height:auto;border-radius:var(--radius)}article img{max-width:100%;height:auto;border-radius:var(--radius)}footer{margin-top:calc(var(--gap) * 8);padding-top:calc(var(--gap) * 2);border-top:1px solid var(--rule);color:var(--fg-dim);font-family:var(--font-mono);font-size:.75rem}
+</style></head> <body> <main>  <article> <h1>Fortnightly #1: UI primitives and the open-source backend stack</h1> <p class="meta"> <time datetime="2026-04-30T00:00:00.000Z">2026-04-30</time> <span> · <span class="tag">wave-2</span><span class="tag">ui</span><span class="tag">fiber</span><span class="tag">joyid</span><span class="tag">open-source</span></span>  </p>  <p>It’s been a while since I’ve posted any BlackBox updates. Starting now (this is entry 1) I’ll be making a fortnightly blog post detailing BlackBox progress specifically. The last couple of months have been productive on a variety of fronts. I’m currently implementing the UI suggestions from the initial phase of BlackBox prototypes and expect a usable update in the next couple of weeks. The next iteration of BlackBox will bring both native L1 CKB transactions and Fiber transactions into the fold, alongside other integrations.</p>
+<p>This entry covers the highlights: the last week of UI work, and the last eight weeks of protocol design. Further research has also been made on potential production-run hardware, with several new components landing that unlock the next stage of integrations — including NFC and integrated light client functionality.</p>
+<h2 id="ui-redesign--steps-13-of-planmd-done">UI redesign — Steps 1–3 of PLAN.md done</h2>
+<p><strong>Primitives layer</strong> (new files in the sketch):</p>
+<ul>
+<li><code>theme.h</code> — layout constants (kept central so the V2 ESP32-P4 port is cheap)</li>
+<li><code>fonts.{h,cpp}</code> — FamiljenGrotesk wired in (no swap)</li>
+<li><code>icons.{h,cpp}</code> — 23 code-drawn icons</li>
+<li><code>ui_primitives.{h,cpp}</code> — shared draw helpers</li>
+</ul>
+<p><strong>Screens built:</strong></p>
+<ul>
+<li>Home → <code>screen_home.{h,cpp}</code></li>
+<li>Settings → <code>screen_settings.{h,cpp}</code></li>
+</ul>
+<p><strong>Python preview mirrors</strong> for fast desktop iteration:</p>
+<ul>
+<li><code>render_gallery.py</code>, <code>render_home.py</code>, <code>render_settings.py</code> → all save <code>*_preview.png</code></li>
+<li><code>render_home.py</code> and <code>render_settings.py</code> import primitives from <code>render_gallery.py</code> (a <code>preview_lib</code> refactor is deferred until rule-of-three triggers)</li>
+</ul>
+<p><strong>Sketch integration:</strong></p>
+<ul>
+<li>Gallery wired into <code>ckb_pos_v0.2.6.ino</code> via a TEMP block — not yet visually verified on device (hardware unplugged)</li>
+<li>Icon size bumps applied: footer 32px, status 20px, gallery 32px</li>
+</ul>
+<p><strong>Flash savings:</strong></p>
+<ul>
+<li>Logo de-dup: <code>LOGO_JOINER</code> → <code>/bbLogo.png</code> SPIFFS route → ~20 KB program flash freed</li>
+</ul>
+<h2 id="backend-protocol-design--open-source-repositories">Backend protocol design — open-source repositories</h2>
+<p>The last eight weeks of protocol work has surfaced as a set of public repos. Each one fills a specific hole in the BlackBox stack:</p>
+<ul>
+<li><strong>wyEspAgentPay</strong> (ESP-IDF, Makefile) — x402 Fiber micropayment library for ESP32. The literal library BlackBox will call when a customer taps “Pay”. No equivalent exists elsewhere; this is custom-built.</li>
+<li><strong>fiber-installer</strong> (Python) — one-command Fiber node bootstrap for Linux, macOS, and Windows. Useful for the kiosk-side or merchant-laptop Fiber node that BlackBox routes through.</li>
+<li><strong>WyAuth</strong> (C++) — JoyID embedded auth for ESP32: P-256 verification via mbedTLS plus a Cloudflare Worker callback receiver. The on-device half of “tap to sign on BlackBox”.</li>
+<li><strong>joyid-ckb-connector</strong> (TS) — mobile-first JoyID connector with a CF Worker relay (bypasses Chrome’s WebAuthn hybrid transport). The web/relay half that pairs with WyAuth; the same relay pattern carried lessons documented in <code>ckb-transactions.feedback.md</code> §1 and the witness-pad gaps.</li>
+<li><strong>joyid-sdk-js</strong> (TS) — JoyID JS SDK fork; backstop reference if <code>@joyid/ckb</code> upstream drifts.</li>
+<li><strong>wyseed</strong> (Python + embedded C) — BIP39/BIP32 seed generation with an embedded C library explicitly targeting ESP32/RP2040. The link target if a merchant does a first-run “create new wallet” instead of pairing JoyID.</li>
+<li><strong>ckb-light-client-lite</strong> — static musl SQLite light client builds. The natural backend for pairing BlackBox with a small Linux box (Pi/N100) to watch for incoming payments without a full node.</li>
+<li><strong>WyVault</strong> — ESP32-P4 CKB hardware wallet, Ledger bridge, Quantum Purse support. Same chip as BlackBox V2; pinmap, display init, USB stack, and signing pipeline are the closest prior art for V2 — the repo to diff against when porting <code>theme.h</code> constants to P4.</li>
+<li><strong>wyvault-lite</strong> (C) — ESP32-S3 hardware wallet. Sibling architecture; useful for small-screen UI primitives if a BlackBox Mini ever happens.</li>
+</ul>  </article>  <footer> <a href="/">blackbox devlog</a> · <a href="/rss.xml">rss</a> · <a href="/feed.json">json</a> · <a href="https://github.com/toastmanau/blackbox-devlog">source</a> </footer> </main> </body></html>

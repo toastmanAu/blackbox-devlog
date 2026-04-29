@@ -6,6 +6,20 @@
   "description": "Dev log for the BlackBox CKB point-of-sale device.",
   "items": [
     {
+      "id": "https://blackbox.wyltekindustries.com/2026-04-30-initial-post",
+      "url": "https://blackbox.wyltekindustries.com/2026-04-30-initial-post",
+      "title": "Fortnightly #1: UI primitives and the open-source backend stack",
+      "content_text": "First fortnightly entry. UI redesign steps 1–3 of PLAN.md complete; eight weeks of backend protocol design surfaced as open-source repos; new hardware components unlock NFC and integrated light client paths.",
+      "date_published": "2026-04-30T00:00:00.000Z",
+      "tags": [
+        "wave-2",
+        "ui",
+        "fiber",
+        "joyid",
+        "open-source"
+      ]
+    },
+    {
       "id": "https://blackbox.wyltekindustries.com/2026-04-27-hello-world",
       "url": "https://blackbox.wyltekindustries.com/2026-04-27-hello-world",
       "title": "Hello, wave 2",
