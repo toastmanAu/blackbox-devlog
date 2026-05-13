@@ -6,6 +6,18 @@
   "description": "Dev log for the BlackBox CKB point-of-sale device.",
   "items": [
     {
+      "id": "https://blackbox.wyltekindustries.com/2026-05-14-wifi-flow-and-v2-prototype",
+      "url": "https://blackbox.wyltekindustries.com/2026-05-14-wifi-flow-and-v2-prototype",
+      "title": "Fortnightly #2: Wi-Fi flow refactor and V2 prototype on the bench",
+      "content_text": "Wi-Fi flow refactor lands three new screens and a set of new UI primitives; V2 prototype board on the bench; NFC and Fiber integrations planned.",
+      "date_published": "2026-05-14T00:00:00.000Z",
+      "tags": [
+        "wave-2",
+        "ui",
+        "hardware"
+      ]
+    },
+    {
       "id": "https://blackbox.wyltekindustries.com/2026-04-30-initial-post",
       "url": "https://blackbox.wyltekindustries.com/2026-04-30-initial-post",
       "title": "Fortnightly #1: UI primitives and the open-source backend stack",

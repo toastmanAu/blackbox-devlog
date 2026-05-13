@@ -1,0 +1,27 @@
+<!DOCTYPE html><html lang="en"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Fortnightly #2: Wi-Fi flow refactor and V2 prototype on the bench — blackbox devlog</title><meta name="description" content="Wi-Fi flow refactor lands three new screens and a set of new UI primitives; V2 prototype board on the bench; NFC and Fiber integrations planned."><link rel="alternate" type="application/rss+xml" title="BlackBox devlog RSS" href="/rss.xml"><link rel="alternate" type="application/feed+json" title="BlackBox devlog feed" href="/feed.json"><style>:root{--bg: #0d0d0f;--fg: #e6e6e6;--fg-dim: #9a9a9a;--accent: #ff8c42;--rule: #2a2a2e;--max: 64ch;--gap: 8px;--radius: 4px;--font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;--font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif}*{box-sizing:border-box}html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);font-family:var(--font-sans);line-height:1.55;font-size:16px}main{max-width:var(--max);margin:0 auto;padding:calc(var(--gap) * 6) calc(var(--gap) * 3)}a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}h1,h2,h3{font-family:var(--font-mono);font-weight:600;line-height:1.2;letter-spacing:-.01em}h1{font-size:1.75rem;margin:0 0 calc(var(--gap) * 2)}h2{font-size:1.25rem;margin:calc(var(--gap) * 4) 0 var(--gap)}.meta{color:var(--fg-dim);font-family:var(--font-mono);font-size:.875rem}.tag{display:inline-block;padding:2px 6px;margin-right:4px;border:1px solid var(--rule);border-radius:var(--radius);font-family:var(--font-mono);font-size:.75rem;color:var(--fg-dim)}.entry-card{border-top:1px solid var(--rule);padding:calc(var(--gap) * 3) 0}.entry-card:last-child{border-bottom:1px solid var(--rule)}.entry-card img{max-width:100%;height:auto;border-radius:var(--radius)}article img{max-width:100%;height:auto;border-radius:var(--radius)}footer{margin-top:calc(var(--gap) * 8);padding-top:calc(var(--gap) * 2);border-top:1px solid var(--rule);color:var(--fg-dim);font-family:var(--font-mono);font-size:.75rem}
+</style></head> <body> <main>  <article> <h1>Fortnightly #2: Wi-Fi flow refactor and V2 prototype on the bench</h1> <p class="meta"> <time datetime="2026-05-14T00:00:00.000Z">2026-05-14</time> <span> · <span class="tag">wave-2</span><span class="tag">ui</span><span class="tag">hardware</span></span>  </p>  <p>A steady fortnight — UI rework continuing, with forward planning on both hardware and integrations. The goal of this stretch is to lock the UI down so the more advanced integrations can move.</p>
+<h2 id="ui--wi-fi-flow-refactor">UI — Wi-Fi flow refactor</h2>
+<p>Dropped the procedural <code>icons.cpp</code> approach and reinstated PNG icons. The quality tradeoff wasn’t worth the flash savings, so the budget got reframed instead.</p>
+<p>New screens:</p>
+<ul>
+<li><code>screen_wifi_scan.{h,cpp}</code> — list, scrollbar, loading state</li>
+<li><code>screen_wifi_password.{h,cpp}</code> — qwerty + green tick CTA</li>
+<li><code>screen_wifi_settings.{h,cpp}</code> — toggle, password masking, error modal</li>
+<li><code>png_icons.{h,cpp}</code> — first cut of the canonical PNG loader</li>
+</ul>
+<p>New <code>ui_primitives</code> additions:</p>
+<ul>
+<li><code>draw_qwerty</code> / <code>hit_qwerty</code> (+ <code>KEY_*</code> codes)</li>
+<li><code>draw_modal</code> / <code>hit_modal_ok</code></li>
+<li><code>draw_toggle</code> / <code>hit_toggle</code></li>
+<li><code>draw_password_field</code> / <code>hit_password_eye</code></li>
+<li><code>draw_network_row</code></li>
+<li><code>draw_scrollbar</code> / <code>hit_scrollbar</code></li>
+</ul>
+<p>Static review of the entire Step 4 wiring — render dispatch, touch dispatch, primitive coverage, and PNG asset audit.</p>
+<h2 id="hardware--integrations">Hardware + integrations</h2>
+<ul>
+<li>Began testing of the new prototype board for V2</li>
+<li>Planned NFC integration</li>
+<li>Researched potential Fiber integrations</li>
+</ul>  </article>  <footer> <a href="/">blackbox devlog</a> · <a href="/rss.xml">rss</a> · <a href="/feed.json">json</a> · <a href="https://github.com/toastmanau/blackbox-devlog">source</a> </footer> </main> </body></html>
