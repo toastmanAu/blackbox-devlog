@@ -26,7 +26,9 @@ cd site && npm install && npm run dev    # → http://localhost:4321
 cd scripts && npm install && npm test
 
 # Detect what would post (without posting)
-cd scripts && node detect-unposted.mjs
+# Run from the repo root — the script resolves entries/ relative to CWD.
+# Needs scripts/ deps installed first: (cd scripts && npm install)
+node scripts/detect-unposted.mjs
 ```
 
 ## Hard rules
