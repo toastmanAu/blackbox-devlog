@@ -6,6 +6,18 @@
   "description": "Dev log for the BlackBox CKB point-of-sale device.",
   "items": [
     {
+      "id": "https://blackbox.wyltekindustries.com/2026-06-30-pos-app-comes-alive-on-lvgl",
+      "url": "https://blackbox.wyltekindustries.com/2026-06-30-pos-app-comes-alive-on-lvgl",
+      "title": "Fortnightly #5: The POS app comes alive on LVGL",
+      "content_text": "BlackBox's on-device POS app takes shape on LVGL — payments, QR, full inventory CRUD and a sales cart/invoice flow on a new ILI9488 display target; the Vault companion wallet adds an on-chain Agent Gateway and embedded light client, and the board emulator goes agentic.",
+      "date_published": "2026-06-30T00:00:00.000Z",
+      "tags": [
+        "wave-2",
+        "firmware",
+        "ui"
+      ]
+    },
+    {
       "id": "https://blackbox.wyltekindustries.com/2026-06-15-vault-companion-wallet",
       "url": "https://blackbox.wyltekindustries.com/2026-06-15-vault-companion-wallet",
       "title": "Fortnightly #4: BlackBox Vault companion wallet goes on-chain",
