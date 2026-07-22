@@ -6,6 +6,18 @@
   "description": "Dev log for the BlackBox CKB point-of-sale device.",
   "items": [
     {
+      "id": "https://blackbox.wyltekindustries.com/2026-07-22-onchain-sale-confirmation",
+      "url": "https://blackbox.wyltekindustries.com/2026-07-22-onchain-sale-confirmation",
+      "title": "Fortnightly #6: BlackBox confirms its own sales on-chain",
+      "content_text": "The V2 prototype's payment path graduates from a Wi-Fi stand-in to real on-chain confirmation, passing its hardware checkpoint with two auto-detected sales and a printed receipt. Scanner and thermal printer come up on real UARTs, and the POS gains a keyless merchant wallet with refunds and cold-storage sweep.",
+      "date_published": "2026-07-22T00:00:00.000Z",
+      "tags": [
+        "wave-2",
+        "firmware",
+        "hardware"
+      ]
+    },
+    {
       "id": "https://blackbox.wyltekindustries.com/2026-06-30-pos-app-comes-alive-on-lvgl",
       "url": "https://blackbox.wyltekindustries.com/2026-06-30-pos-app-comes-alive-on-lvgl",
       "title": "Fortnightly #5: The POS app comes alive on LVGL",

@@ -1,0 +1,55 @@
+<!DOCTYPE html><html lang="en"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Fortnightly #6: BlackBox confirms its own sales on-chain — blackbox devlog</title><meta name="description" content="The V2 prototype's payment path graduates from a Wi-Fi stand-in to real on-chain confirmation, passing its hardware checkpoint with two auto-detected sales and a printed receipt. Scanner and thermal printer come up on real UARTs, and the POS gains a keyless merchant wallet with refunds and cold-storage sweep."><link rel="alternate" type="application/rss+xml" title="BlackBox devlog RSS" href="/rss.xml"><link rel="alternate" type="application/feed+json" title="BlackBox devlog feed" href="/feed.json"><style>:root{--bg: #0d0d0f;--fg: #e6e6e6;--fg-dim: #9a9a9a;--accent: #ff8c42;--rule: #2a2a2e;--max: 64ch;--gap: 8px;--radius: 4px;--font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;--font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif}*{box-sizing:border-box}html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);font-family:var(--font-sans);line-height:1.55;font-size:16px}main{max-width:var(--max);margin:0 auto;padding:calc(var(--gap) * 6) calc(var(--gap) * 3)}a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}h1,h2,h3{font-family:var(--font-mono);font-weight:600;line-height:1.2;letter-spacing:-.01em}h1{font-size:1.75rem;margin:0 0 calc(var(--gap) * 2)}h2{font-size:1.25rem;margin:calc(var(--gap) * 4) 0 var(--gap)}.meta{color:var(--fg-dim);font-family:var(--font-mono);font-size:.875rem}.tag{display:inline-block;padding:2px 6px;margin-right:4px;border:1px solid var(--rule);border-radius:var(--radius);font-family:var(--font-mono);font-size:.75rem;color:var(--fg-dim)}.entry-card{border-top:1px solid var(--rule);padding:calc(var(--gap) * 3) 0}.entry-card:last-child{border-bottom:1px solid var(--rule)}.entry-card img{max-width:100%;height:auto;border-radius:var(--radius)}article img{max-width:100%;height:auto;border-radius:var(--radius)}footer{margin-top:calc(var(--gap) * 8);padding-top:calc(var(--gap) * 2);border-top:1px solid var(--rule);color:var(--fg-dim);font-family:var(--font-mono);font-size:.75rem}
+</style></head> <body> <main>  <article> <h1>Fortnightly #6: BlackBox confirms its own sales on-chain</h1> <p class="meta"> <time datetime="2026-07-22T00:00:00.000Z">2026-07-22</time> <span> · <span class="tag">wave-2</span><span class="tag">firmware</span><span class="tag">hardware</span></span>  </p>  <p>The V2 prototype has been taking test payments for a while now — but the
+payment <em>screen</em> was working off a stand-in. If the customer’s phone reached
+the device over Wi-Fi, the sale was treated as paid; the actual settlement was
+verified out-of-band. This fortnight that placeholder came out, and the device
+started confirming sales against the chain itself. The two payments below are
+the first proofs of the new path, not the first payments.</p>
+<h2 id="wave-7b--the-peripherals-come-up">Wave 7b — the peripherals come up</h2>
+<p>The two UART peripherals that make a point-of-sale device a point-of-sale
+device are alive on real hardware. A <strong>GM861S barcode scanner</strong> runs on UART2
+behind a non-blocking driver (v0.2.6 init sequence, 9600 → 115200 bootstrap,
+ACK-strip and idle-gap framing), wired into the sale flow so scanning a product
+looks it up in <code>inventory_svc</code> and drops it straight into the cart. A <strong>QR204
+thermal printer</strong> on UART1 prints a real receipt — line items, totals, a
+<code>nervos:</code> payment URI and a live date line from a new SNTP <code>clock_svc</code>.</p>
+<p>Several fixes only a bench session could have found. On-screen QR and barcodes
+were being rendered inverted, which decoders reject outright — they needed
+black-on-white with proper quiet zones. The indexed canvases were triggering a
+~130 KB-per-frame decode allocation behind an intermittent QR failure, fixed by
+flattening to RGB565. The device Wi-Fi build turned out to be compiling the
+<em>simulator</em> branch, because an <code>__has_include</code> seam defeated library discovery;
+the real stack costs another 614 KB and needed a 2.5 MB app partition. And the
+payment URI scheme was corrected to the one JoyID actually implements.</p>
+<h2 id="wave-8--on-chain-confirmation">Wave 8 — on-chain confirmation</h2>
+<p>The proxy’s replacement is three pieces. <code>ckb_addr</code> decodes a bech32m address
+to a lock script on-device, host-tested with round-trip vectors. <code>chain_svc</code>
+speaks <code>get_cells_capacity</code> JSON-RPC to a CKB indexer node. <code>confirm_svc</code> runs
+a FreeRTOS poll task that arms when the QR screen appears and auto-advances to
+Success when the merchant lock’s capacity rises by the sale amount.</p>
+<p>The interesting work was concurrency, not RPC. Review caught a dual-task race
+in the poll design that could leak a task and produce a <strong>false CONFIRMED</strong> —
+unacceptable on a money path — fixed with a generation counter and per-task
+context, plus a critical section closing a TOCTOU between the generation check
+and the state write. Disarming no longer blocks LVGL either.</p>
+<p>Then the checkpoint: <strong>two payments auto-detected on real hardware, with a
+receipt printed.</strong> The confirming transaction hash is now captured at CONFIRMED
+and shown on the success screen and receipt — the first step toward per-tx
+matching. Getting there also meant standing up chain infrastructure: an
+OrangePi-3B testnet indexer node, bootstrapped from an existing RocksDB rather
+than syncing from genesis, since the old node was decommissioned.</p>
+<h2 id="waves-9a--9b--a-keyless-merchant-wallet">Waves 9a &#x26; 9b — a keyless merchant wallet</h2>
+<p>A merchant needs to send, not just receive: refunds, and moving takings
+somewhere safer than the till. But a shop-floor device should never hold a key.</p>
+<p>The answer is the <strong>Agent Gateway</strong> from the <a href="https://github.com/toastmanAu/wyltek-wallet">Vault companion
+wallet</a>. The POS holds only a
+scoped biscuit token, provisioned by scanning a QR bundle the wallet now emits,
+and submits <code>send_ckb</code> intents to the relay over TLS. The phone re-validates
+against policy and signs. Wave 9a built that path plus a <strong>Refund</strong> flow and a
+result screen; Wave 9b added an async <strong>takings balance</strong> for the merchant lock
+and a <strong>Sweep</strong> screen that moves CKB to a persisted cold-storage address.</p>
+<p>Review earned its keep again — corrupt-token parsing, a wrong-payee hazard from
+a stale scanned recipient, a send-path mux gap, and a provisioning bundle
+silently truncated by a 200-byte scan buffer (the biscuit bundles run 700–1000
+chars) were all caught before hardware. The build sits at <strong>61% flash / 34%
+RAM</strong>.</p>  </article>  <footer> <a href="/">blackbox devlog</a> · <a href="/rss.xml">rss</a> · <a href="/feed.json">json</a> · <a href="https://github.com/toastmanau/blackbox-devlog">source</a> </footer> </main> </body></html>
