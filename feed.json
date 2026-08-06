@@ -6,6 +6,18 @@
   "description": "Dev log for the BlackBox CKB point-of-sale device.",
   "items": [
     {
+      "id": "https://blackbox.wyltekindustries.com/2026-08-06-fortnightly-7-tier1-rates-ota",
+      "url": "https://blackbox.wyltekindustries.com/2026-08-06-fortnightly-7-tier1-rates-ota",
+      "title": "Fortnightly #7: no third machine, pricing returns, and updates over the air",
+      "content_text": "The Tier-1 arc lands: a V1 device needs nothing but the companion wallet app — signing over LAN mDNS/TLS, chain reads proxied through the phone, hardware-verified end-to-end. Live pricing returns to the rewrite with a hardened Binance+FX rate chain and six currencies, a review catch saves half of all sales from never confirming, and a permanent updater partition brings browser OTA plus a no-cable migration path for v0.2.6 units.",
+      "date_published": "2026-08-06T00:00:00.000Z",
+      "tags": [
+        "wave-2",
+        "firmware",
+        "hardware"
+      ]
+    },
+    {
       "id": "https://blackbox.wyltekindustries.com/2026-07-22-onchain-sale-confirmation",
       "url": "https://blackbox.wyltekindustries.com/2026-07-22-onchain-sale-confirmation",
       "title": "Fortnightly #6: BlackBox confirms its own sales on-chain",

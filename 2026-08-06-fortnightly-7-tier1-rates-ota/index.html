@@ -1,0 +1,40 @@
+<!DOCTYPE html><html lang="en"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Fortnightly #7: no third machine, pricing returns, and updates over the air — blackbox devlog</title><meta name="description" content="The Tier-1 arc lands: a V1 device needs nothing but the companion wallet app — signing over LAN mDNS/TLS, chain reads proxied through the phone, hardware-verified end-to-end. Live pricing returns to the rewrite with a hardened Binance+FX rate chain and six currencies, a review catch saves half of all sales from never confirming, and a permanent updater partition brings browser OTA plus a no-cable migration path for v0.2.6 units."><link rel="alternate" type="application/rss+xml" title="BlackBox devlog RSS" href="/rss.xml"><link rel="alternate" type="application/feed+json" title="BlackBox devlog feed" href="/feed.json"><style>:root{--bg: #0d0d0f;--fg: #e6e6e6;--fg-dim: #9a9a9a;--accent: #ff8c42;--rule: #2a2a2e;--max: 64ch;--gap: 8px;--radius: 4px;--font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;--font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif}*{box-sizing:border-box}html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);font-family:var(--font-sans);line-height:1.55;font-size:16px}main{max-width:var(--max);margin:0 auto;padding:calc(var(--gap) * 6) calc(var(--gap) * 3)}a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}h1,h2,h3{font-family:var(--font-mono);font-weight:600;line-height:1.2;letter-spacing:-.01em}h1{font-size:1.75rem;margin:0 0 calc(var(--gap) * 2)}h2{font-size:1.25rem;margin:calc(var(--gap) * 4) 0 var(--gap)}.meta{color:var(--fg-dim);font-family:var(--font-mono);font-size:.875rem}.tag{display:inline-block;padding:2px 6px;margin-right:4px;border:1px solid var(--rule);border-radius:var(--radius);font-family:var(--font-mono);font-size:.75rem;color:var(--fg-dim)}.entry-card{border-top:1px solid var(--rule);padding:calc(var(--gap) * 3) 0}.entry-card:last-child{border-bottom:1px solid var(--rule)}.entry-card img{max-width:100%;height:auto;border-radius:var(--radius)}article img{max-width:100%;height:auto;border-radius:var(--radius)}footer{margin-top:calc(var(--gap) * 8);padding-top:calc(var(--gap) * 2);border-top:1px solid var(--rule);color:var(--fg-dim);font-family:var(--font-mono);font-size:.75rem}
+</style></head> <body> <main>  <article> <h1>Fortnightly #7: no third machine, pricing returns, and updates over the air</h1> <p class="meta"> <time datetime="2026-08-06T00:00:00.000Z">2026-08-06</time> <span> · <span class="tag">wave-2</span><span class="tag">firmware</span><span class="tag">hardware</span></span>  </p>  <p>The last fortnight closed out three arcs that each would have headlined a
+quieter cycle: the device lost its last server dependency, got its live
+prices back, and learned to update itself.</p>
+<h2 id="no-third-machine">No third machine</h2>
+<p>The two-tier transport work finished and passed its hardware checkpoint: a
+Tier-1 device pairs with the merchant’s phone by QR, resolves it over mDNS,
+and does everything through it — refund and sweep signing via the relay wire
+contract served locally over self-signed TLS, and sale confirmation plus
+balance through a chain-read proxy on the phone. No relay, no indexer, no
+Tailscale. Six device-only bugs fell out of the live checkpoint (the Android
+HTTP server that couldn’t actually serve HTTPS was the best of them), the
+board’s forgotten 4 MB of PSRAM got switched on, and receipts picked up the
+BlackBox logo — after a detour through the QR204’s raster quirks — plus a
+printed refund receipt.</p>
+<h2 id="pricing-returns-hardened">Pricing returns, hardened</h2>
+<p>The original prototype always priced sales live; the LVGL rewrite had been
+running on a hardcoded stub since the port began. That gap closed this
+fortnight, with more armour than before: a background task feeds the POS
+from Binance’s CKB ticker crossed with a daily USD→fiat table, falling back
+to CoinGecko with exponential backoff when rate-limited. Merchants pick from
+six display currencies, quotes lock their rate the moment they’re struck,
+and a stale feed blocks new quotes rather than guessing — tapping checkout
+kicks an immediate refetch. The fortnight’s best save came from review, not
+hardware: the payment QR rounded CKB to two decimals while the chain watcher
+demanded full precision, so at any real rate roughly half of paid sales
+would have sat unconfirmed forever. One quantization at quote-strike now
+keeps the QR, the watcher and the receipt in exact agreement.</p>
+<h2 id="updates-over-the-air">Updates over the air</h2>
+<p>v0.3.0 ships with a permanent factory updater partition: tap Update in
+Settings, the device reboots into a 1 MB updater that joins Wi-Fi (or opens
+its own AP), and a browser on the LAN uploads new firmware and assets — with
+the bootloader falling back to the updater if an upload is bad. Fielded
+v0.2.6 units get there with no cable: their existing web-OTA delivers the
+updater, which repartitions the flash in place and comes up ready to receive
+v0.3.0. The review process earned its keep here — four distinct brick vectors
+(a cross-core cache race during the table write among them) were caught and
+fixed before any hardware was risked.</p>
+<p>Next: the hardware checkpoint for OTA and migration, golden-image recaptures,
+and then the long-promised Fiber instant-settlement path.</p>  </article>  <footer> <a href="/">blackbox devlog</a> · <a href="/rss.xml">rss</a> · <a href="/feed.json">json</a> · <a href="https://github.com/toastmanau/blackbox-devlog">source</a> </footer> </main> </body></html>
