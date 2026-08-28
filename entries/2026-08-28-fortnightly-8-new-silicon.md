@@ -1,14 +1,14 @@
 ---
 title: "Fortnightly #8: v0.3.0 ships, and BlackBox moves to new silicon"
 date: 2026-08-28
-tweet: "Fortnightly #8: v0.3.0 shipped to the V1 prototype for testing — over the air, no cable. Then BlackBox moved to new silicon: the old board was at 99.7% of its app slot, the S3 port sits at 25% of one six times bigger. First unit soldered and loomed."
-summary: "v0.3.0 goes out as a release the fielded prototype's own one-press updater collects, repartitioning its flash with no cable attached. Then the board changes: the V1 hardware sat at 99.7% of its application slot, so v1.0.0 forks to a VIEWE ESP32-S3 — 16 MB flash, 8 MB octal PSRAM, an ST7796 panel and a touch controller LovyanGFX gets wrong — landing at 25% of a slot six times larger and ending the per-commit flash-budget gate permanently. A dependency graph overturns the ESP-IDF migration the light client was supposed to require, vendor documentation proves wrong in two load-bearing places, three brick-class traps are written down before any wiring, headers and looms go on the bench, and the repo gets its first CI — which immediately finds the simulator had not built for two months."
+tweet: "Fortnightly #8: v0.3.0 shipped to the V1 prototype for testing — over the air, no cable. Then BlackBox moved to new silicon: the light client wouldn't fit the old board's 2MB app slot, and its 4MB flash was spoken for end to end. First unit soldered and loomed."
+summary: "v0.3.0 goes out as a release the fielded prototype's own one-press updater collects, repartitioning its flash with no cable attached. Then the board changes: a 1.68 MB app in a 2 MB slot left nowhere to put the light client’s ~726 KB, and the V1 flash was allocated end to end, so v1.0.0 forks to a VIEWE ESP32-S3 — 16 MB flash, 8 MB octal PSRAM, an ST7796 panel and a touch controller LovyanGFX gets wrong — landing at 25% of a slot three times larger. A dependency graph overturns the ESP-IDF migration the light client was supposed to require, vendor documentation proves wrong in two load-bearing places, three brick-class traps are written down before any wiring, headers and looms go on the bench, and the repo gets its first CI — which immediately finds the simulator had not built for two months."
 tags: ["wave-2", "hardware", "firmware"]
 version: "1.0.0-dev"
 do_not_post: true
 thread:
   - "v0.3.0 is out to the V1 prototype for bench testing, published as a release the fielded unit's own one-press auto-updater collects. A v0.2.6 device downloads it, repartitions its flash in place and comes up on the new layout — no cable, no serial port, one button."
-  - "Why move boards: v0.3.0 filled 99.7% of the WROOM's 4MB app slot, so the on-device light client — the last open item of the two-tier arc — could not physically fit. v1.0.0 is a new tree on a VIEWE ESP32-S3: 16MB flash, 8MB octal PSRAM. The app now sits at 25%."
+  - "Why move boards: the light client adds ~726KB to a 1.68MB app already in a 2MB slot, and the WROOM's 4MB flash was allocated end to end — main could not grow. v1.0.0 is a new tree on a VIEWE ESP32-S3: 16MB flash, 8MB PSRAM, a 6MB app slot. The app sits at 25%."
   - "A conclusion got overturned, which is the best kind. The old design said an ESP-IDF migration was required to host the light client. But the only two ckb-light-esp components with IDF coupling are the two we don't need; what's left is ~5,300 lines of portable C99."
   - "Vendor docs wrong twice, both load-bearing: no CH340 (it's native USB-Serial-JTAG), and the config claims ST7789 while the init sequence is ST7796. LovyanGFX's stock CHSC6540 touch driver is wrong too — it can't express a coordinate above 255 on a 320x480 panel."
   - "Then the bench: J3 and NFC headers soldered, custom looms built for the printer, QR scanner and NFC module. bb_pins.h holds every GPIO in the tree, so it's the one file you diff against the schematic. First power-up is in the coming days."
@@ -39,19 +39,22 @@ the board it was written for.
 
 ## The ceiling
 
-v0.3.0 has been running at 99.7% of the V1 board's application slot. Every
-commit for months has passed a flash-budget check, and the on-device light
-client — item #3, and the last open item of the two-tier transport arc — was
-never going to fit in what was left. That was not a problem to optimise
-around. It was a board problem.
+v0.3.0 is a 1.68 MB application in a 2 MB slot. For ordinary work that was
+comfortable enough. But the on-device light client — item #3, and the last
+open item of the two-tier transport arc — adds about 726 KB, which puts the
+pair at roughly 2.4 MB, and there is nowhere for that to go: the WROOM's
+4 MB flash is allocated end to end, the coredump partition finishing exactly
+on the 4 MB boundary. `main` cannot be widened without taking the space from
+the updater or the assets, and both of those are tighter than it is. That was
+not a problem to optimise around. It was a board problem.
 
 So v1.0.0 is a new sketch tree on a new board: the VIEWE UEDX32480035E-WB-A,
 an ESP32-S3 with 16 MB of flash and 8 MB of octal PSRAM, driving a 320x480
 ST7796 over SPI with a CHSC6540 capacitive touch panel. v0.3.0 stays
 flashable on V1 hardware for UI-feel testing, and the two trees are free to
 diverge from here. The port compiles to 1,618,587 bytes against a 6 MB slot:
-25%. The gate is gone permanently, and the entire microSD block stays
-reserved for the light client's filter cache.
+25%, with room for the light client three times over, and the entire microSD
+block stays reserved for its filter cache.
 
 ## The migration that turned out not to be needed
 
