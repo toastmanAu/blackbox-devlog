@@ -6,6 +6,18 @@
   "description": "Dev log for the BlackBox CKB point-of-sale device.",
   "items": [
     {
+      "id": "https://blackbox.wyltekindustries.com/2026-09-21-fortnightly-9-bitcoin-rail-and-a-board-of-our-own",
+      "url": "https://blackbox.wyltekindustries.com/2026-09-21-fortnightly-9-bitcoin-rail-and-a-board-of-our-own",
+      "title": "Fortnightly #9: Bitcoin becomes a second rail, and BlackBox gets a board of its own",
+      "content_text": "The VIEWE S3 board comes up and resolves a real funding block against the testnet indexer; the light client gets an explicit answer to where its scan starts, with no silent defaults. Bitcoin lands as a second receive rail — receive-only, keyless, watch-only from a merchant xpub, with SEEN and VERIFIED as separate states and VERIFIED meaning a Merkle proof checked against a header chain the terminal validated itself. And a custom 4-layer PCB now exists in KiCad, generated from a source model rather than drawn, with six blockers still open before anything goes to fab.",
+      "date_published": "2026-09-21T00:00:00.000Z",
+      "tags": [
+        "wave-2",
+        "hardware",
+        "firmware"
+      ]
+    },
+    {
       "id": "https://blackbox.wyltekindustries.com/2026-08-28-fortnightly-8-new-silicon",
       "url": "https://blackbox.wyltekindustries.com/2026-08-28-fortnightly-8-new-silicon",
       "title": "Fortnightly #8: v0.3.0 ships, and BlackBox moves to new silicon",
