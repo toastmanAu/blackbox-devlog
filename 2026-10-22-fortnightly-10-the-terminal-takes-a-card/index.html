@@ -1,0 +1,82 @@
+<!DOCTYPE html><html lang="en"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Fortnightly #10: the terminal learns to take a card — blackbox devlog</title><meta name="description" content="A third way to pay lands: prepaid NFC cards that carry their own balance, debited card-side on the tap with the network unplugged, then batched to the Vault which settles them on chain. The money path is built to get a tap wrong safely — every debit is journaled before the card is written, and 'landed', 'didn't land' and 'unknown' are told apart. Alongside: item vouchers backed by tiny chain cells, staff keys authenticated by a tag's NXP originality signature, barcode scan-to-enter in inventory, and a UI freeze traced to a flash write on the wrong CPU core."><link rel="alternate" type="application/rss+xml" title="BlackBox devlog RSS" href="/rss.xml"><link rel="alternate" type="application/feed+json" title="BlackBox devlog feed" href="/feed.json"><style>:root{--bg: #0d0d0f;--fg: #e6e6e6;--fg-dim: #9a9a9a;--accent: #ff8c42;--rule: #2a2a2e;--max: 64ch;--gap: 8px;--radius: 4px;--font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;--font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif}*{box-sizing:border-box}html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);font-family:var(--font-sans);line-height:1.55;font-size:16px}main{max-width:var(--max);margin:0 auto;padding:calc(var(--gap) * 6) calc(var(--gap) * 3)}a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}h1,h2,h3{font-family:var(--font-mono);font-weight:600;line-height:1.2;letter-spacing:-.01em}h1{font-size:1.75rem;margin:0 0 calc(var(--gap) * 2)}h2{font-size:1.25rem;margin:calc(var(--gap) * 4) 0 var(--gap)}.meta{color:var(--fg-dim);font-family:var(--font-mono);font-size:.875rem}.tag{display:inline-block;padding:2px 6px;margin-right:4px;border:1px solid var(--rule);border-radius:var(--radius);font-family:var(--font-mono);font-size:.75rem;color:var(--fg-dim)}.entry-card{border-top:1px solid var(--rule);padding:calc(var(--gap) * 3) 0}.entry-card:last-child{border-bottom:1px solid var(--rule)}.entry-card img{max-width:100%;height:auto;border-radius:var(--radius)}article img{max-width:100%;height:auto;border-radius:var(--radius)}footer{margin-top:calc(var(--gap) * 8);padding-top:calc(var(--gap) * 2);border-top:1px solid var(--rule);color:var(--fg-dim);font-family:var(--font-mono);font-size:.75rem}
+</style></head> <body> <main>  <article> <h1>Fortnightly #10: the terminal learns to take a card</h1> <p class="meta"> <time datetime="2026-10-22T00:00:00.000Z">2026-10-22</time> <span> · <span class="tag">wave-2</span><span class="tag">firmware</span><span class="tag">hardware</span></span>  </p>  <p>Three ways to pay now, and the newest one is the first that doesn’t need the
+chain at the moment of sale. CKB and Bitcoin both put the network in the loop
+when the customer taps. A prepaid card takes it out: the money is on the card,
+the debit happens on the card, and the terminal reconciles with the chain
+afterwards, in its own time.</p>
+<h2 id="a-card-that-carries-its-own-balance">A card that carries its own balance</h2>
+<p>The card holds a balance, a counter and a MAC. A tap reads the record, decides
+whether the sale is allowed, writes the new balance and counter back, and signs
+the result — all card-side, with no server and no transaction. The terminal
+holds a debit key that can <em>spend down</em> a card but cannot <em>create</em> value: issuing
+and loading happen in the Vault, which owns the on-chain reserve behind each
+card. The posture is the one this project keeps for every rail — <strong>the terminal
+holds no key that can mint money</strong>.</p>
+<p>Settlement is a separate, later act. The terminal keeps a journal of every
+completed tap and, when it can reach the Vault, sends the batch; the Vault
+verifies each entry, spends the matching reserve cell, and records the result on
+chain. Until then the terminal runs on an unsettled cap, so the worst case of a
+terminal that never phones home is bounded rather than open-ended.</p>
+<p>This is a <em>demo tier</em>. It runs on cheap NTAG cards protected by our own MAC
+rather than the DESFire EV3 secure element the shipping card will use, behind a
+compile-time flag, on testnet. It exists so the whole flow — issue, tap, debit,
+refund, settle, revoke — is real and exercised long before the secure silicon
+and its keys arrive.</p>
+<h2 id="getting-a-tap-wrong-safely">Getting a tap wrong, safely</h2>
+<p>The part worth the month is what happens when a tap <em>doesn’t</em> go cleanly, because
+that is where money is lost or duplicated.</p>
+<p>Every debit is written to the journal as a write-ahead intent <strong>before</strong> the
+card is touched, and removed only once the card write is confirmed and the entry
+durably stored. So a card pulled out mid-write, a brown-out between the card and
+the journal, a reader glitch — each lands in a state the terminal can name.
+A write that is <em>known</em> not to have landed charges nothing. A write whose outcome
+is <em>unknown</em> parks, and the next tap of that same card resolves it to exactly one
+charge or none — never two. At the bench, cards were yanked mid-write on purpose,
+five times, and the ledger came out with exactly five charges and no doubles and
+no losses.</p>
+<p>A sale cancelled at the instant its card was being charged is the nastiest case:
+the money moved but the sale is gone. That now raises a flag the cashier must
+acknowledge, and — a fix from the pre-merge security review — the same card is
+refused a second tap until they do, so an orphaned charge is handed back by
+refund rather than silently doubled. The guard is held until the operator clears
+it, not on a timer, because a timer is exactly long enough for an unhurried
+cashier to charge twice.</p>
+<h2 id="vouchers-and-a-key-you-can-hold">Vouchers, and a key you can hold</h2>
+<p>Two companions to the card, both on the Vault side.</p>
+<p><strong>Item vouchers</strong> put a product rather than a balance on a tag — “1 × coffee” —
+each backed by a minimum-size chain cell and settled through the same endpoint as
+a card tap; a used-up voucher closes its cell automatically once the settlement
+lands. <strong>Staff keys</strong> are the authorisation side: any genuine NXP NTAG21x,
+recognised by the originality signature NXP puts on its silicon and verified once
+with a hand-written, verify-only elliptic-curve check. A price override needs a
+staff tag. The cheap demo cards turned out to be counterfeit — they answer like
+the real part but cannot produce that signature — which breaks nothing for cards
+(our MAC protects those) and is precisely why staff keys lean on the signature
+instead.</p>
+<h2 id="the-freeze">The freeze</h2>
+<p>One bench session the confirmation screen began freezing, hard, every time a
+successful card debit was immediately followed by a settlement sync. The
+heartbeat task kept printing; the UI task sat dead in a five-millisecond sleep it
+never woke from.</p>
+<p>The cause was not in the money code at all. An SPI-flash write on the ESP32-S3
+briefly stops the <em>other</em> CPU core with its caches off. The task doing the
+journal and settlement writes was unpinned, so it ran on the core <em>opposite</em> the
+UI — and its flash write dropped the UI core’s clock tick, so the UI’s sleep
+never ended. The fix is one word per task: pin the flash writers to the same core
+the UI runs on, and the stall lands on the networking core, which is built to
+absorb it. Seventeen hours of uptime and the full bench run later, not a single
+freeze. No payment logic changed — only which core a task is allowed to run on.
+The same latent bug was found and pinned in the Bitcoin header path, where it had
+not surfaced yet.</p>
+<h2 id="also-this-fortnight">Also this fortnight</h2>
+<p>Adding a product to inventory no longer means typing a thirteen-digit code on
+glass: there’s a <strong>Scan barcode</strong> button on the Add Item form that arms the head
+in place and drops the code into the field, keeping the name and price already
+typed. And the bench caught the Add Item keyboard’s space bar hiding under the
+footer bar — created too early in the draw order — now fixed.</p>
+<h2 id="next">Next</h2>
+<p>The prepaid card work has landed on the board-port branch; the remaining items
+are a watchdog that reboots a genuinely wedged terminal without false-firing
+mid-update, certificate pinning so settlement can’t be spoofed on a hostile LAN,
+and the on-POS half of vouchers and staff keys. And the secure-element card
+itself, once the DESFire stock and a genuine staff tag are on the bench.</p>  </article>  <footer> <a href="/">blackbox devlog</a> · <a href="/rss.xml">rss</a> · <a href="/feed.json">json</a> · <a href="https://github.com/toastmanau/blackbox-devlog">source</a> </footer> </main> </body></html>

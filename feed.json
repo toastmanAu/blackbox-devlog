@@ -6,6 +6,18 @@
   "description": "Dev log for the BlackBox CKB point-of-sale device.",
   "items": [
     {
+      "id": "https://blackbox.wyltekindustries.com/2026-10-22-fortnightly-10-the-terminal-takes-a-card",
+      "url": "https://blackbox.wyltekindustries.com/2026-10-22-fortnightly-10-the-terminal-takes-a-card",
+      "title": "Fortnightly #10: the terminal learns to take a card",
+      "content_text": "A third way to pay lands: prepaid NFC cards that carry their own balance, debited card-side on the tap with the network unplugged, then batched to the Vault which settles them on chain. The money path is built to get a tap wrong safely — every debit is journaled before the card is written, and 'landed', 'didn't land' and 'unknown' are told apart. Alongside: item vouchers backed by tiny chain cells, staff keys authenticated by a tag's NXP originality signature, barcode scan-to-enter in inventory, and a UI freeze traced to a flash write on the wrong CPU core.",
+      "date_published": "2026-10-22T00:00:00.000Z",
+      "tags": [
+        "wave-2",
+        "firmware",
+        "hardware"
+      ]
+    },
+    {
       "id": "https://blackbox.wyltekindustries.com/2026-09-21-fortnightly-9-bitcoin-rail-and-a-board-of-our-own",
       "url": "https://blackbox.wyltekindustries.com/2026-09-21-fortnightly-9-bitcoin-rail-and-a-board-of-our-own",
       "title": "Fortnightly #9: Bitcoin becomes a second rail, and BlackBox gets a board of its own",
