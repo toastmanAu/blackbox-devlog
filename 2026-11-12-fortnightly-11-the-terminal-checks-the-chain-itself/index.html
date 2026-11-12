@@ -1,0 +1,87 @@
+<!DOCTYPE html><html lang="en"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Fortnightly #11: the terminal checks the chain itself — blackbox devlog</title><meta name="description" content="The terminal now runs a CKB light client and confirms sales itself, against any public node, with the phone kept as a fallback. Twenty bench sales out of twenty confirmed, then a mainnet sale. Alongside: the link to the Vault is pinned to a key carried in the pairing QR, staff keys get a PIN, the terminal keeps a usage log for the Kenya trial, and two bench hangs turn out to be a receipt printer and a 32-bit timer."><link rel="alternate" type="application/rss+xml" title="BlackBox devlog RSS" href="/rss.xml"><link rel="alternate" type="application/feed+json" title="BlackBox devlog feed" href="/feed.json"><style>:root{--bg: #0d0d0f;--fg: #e6e6e6;--fg-dim: #9a9a9a;--accent: #ff8c42;--rule: #2a2a2e;--max: 64ch;--gap: 8px;--radius: 4px;--font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;--font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif}*{box-sizing:border-box}html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);font-family:var(--font-sans);line-height:1.55;font-size:16px}main{max-width:var(--max);margin:0 auto;padding:calc(var(--gap) * 6) calc(var(--gap) * 3)}a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}h1,h2,h3{font-family:var(--font-mono);font-weight:600;line-height:1.2;letter-spacing:-.01em}h1{font-size:1.75rem;margin:0 0 calc(var(--gap) * 2)}h2{font-size:1.25rem;margin:calc(var(--gap) * 4) 0 var(--gap)}.meta{color:var(--fg-dim);font-family:var(--font-mono);font-size:.875rem}.tag{display:inline-block;padding:2px 6px;margin-right:4px;border:1px solid var(--rule);border-radius:var(--radius);font-family:var(--font-mono);font-size:.75rem;color:var(--fg-dim)}.entry-card{border-top:1px solid var(--rule);padding:calc(var(--gap) * 3) 0}.entry-card:last-child{border-bottom:1px solid var(--rule)}.entry-card img{max-width:100%;height:auto;border-radius:var(--radius)}article img{max-width:100%;height:auto;border-radius:var(--radius)}footer{margin-top:calc(var(--gap) * 8);padding-top:calc(var(--gap) * 2);border-top:1px solid var(--rule);color:var(--fg-dim);font-family:var(--font-mono);font-size:.75rem}
+</style></head> <body> <main>  <article> <h1>Fortnightly #11: the terminal checks the chain itself</h1> <p class="meta"> <time datetime="2026-11-12T00:00:00.000Z">2026-11-12</time> <span> · <span class="tag">wave-2</span><span class="tag">firmware</span></span>  </p>  <p>Early this month a customer paid 4,277 CKB to the terminal’s QR code. The payment
+landed on chain and the terminal never noticed. It was waiting for the phone to
+tell it, and the phone was not listening. That set the rule for this period: the
+terminal must be able to confirm a sale by itself, from any public CKB node,
+with no second machine in the loop.</p>
+<h2 id="a-light-client-in-the-till">A light client in the till</h2>
+<p>The work started upstream, in <code>ckb-light-esp</code>, the light client library the
+terminal vendors. It could already find a chain tip. It could not yet prove a
+payment. It now downloads the block a filter points at, checks that block’s
+transaction root, walks the transactions, and reports what they did to the
+merchant’s lock: shannons in, shannons out, and whether the merchant signed.
+A cell set with an undo journal keeps the running balance and can roll back
+across a reorg. Host tests went from 408 to 2,229.</p>
+<p>The proofs got stricter on the way. A node’s claim about the chain tip must now
+carry real proof of work, link back to a block the terminal already trusts,
+survive random sampling of the chain between the two, and follow a reorg rather
+than refuse it. Before this, a peer could have invented a tip.</p>
+<p>On the terminal, the light client runs as its own task beside the existing
+phone path. Whichever source proves the payment first confirms the sale, and
+the QR screen and the receipt name the source. The terminal still holds no
+spending key. It only watches.</p>
+<h2 id="what-only-the-live-network-showed">What only the live network showed</h2>
+<p>Unit tests ran green long before the thing worked. The live network supplied
+the rest:</p>
+<ul>
+<li>The testnet identify string in our plan was wrong, and the wrong one earns a
+five-minute ban. That explained an older note that “testnet doesn’t serve
+filters”.</li>
+<li>One real block filter was 13.8 KB against an 8 KB cap, and sync stalled on it
+for good. Over-size filters are now hashed through and the block is fetched
+anyway.</li>
+<li>The design’s receive buffer was 68 KB. The logs from a full-history run held
+thousands of messages above that, the largest 184,707 bytes. The real floor
+is 786,460 bytes, which on this board means PSRAM.</li>
+</ul>
+<p>That last one came from reading the log of a real run instead of the spec. A
+full walk of a testnet address’s history then matched the node’s own balance
+exactly.</p>
+<h2 id="the-bench-run">The bench run</h2>
+<p>The acceptance run was twenty sales in a row with everything live at once.
+All twenty confirmed: seventeen by the light client, three by the phone path,
+with a typical wait of about 55 seconds. A many-input payment passed, and on
+11 November the terminal confirmed a mainnet sale on its own.</p>
+<p>The run still failed as written, because the screen kept freezing. None of the
+causes were in the payment code. A receipt takes 14 seconds to print and was
+printing on the UI thread, so printing moved to its own task. A separate
+seven-minute hang was the printer library’s pacing timer: it counts
+microseconds in 32 bits and wraps after about 36 minutes idle, so the first
+receipt after a quiet spell waited for a deadline in the past. And “New sale”
+was stacking screens until the third sale silently refused to open.</p>
+<h2 id="pinning-the-vault">Pinning the Vault</h2>
+<p>Every call from the terminal to the Vault used to accept any TLS certificate
+and trust whichever device answered first on the LAN, then hand over its access
+token. The fix uses something the till already does: scan the pairing QR. The
+QR now carries a hash of the Vault’s public key, and the terminal refuses any
+connection whose key does not match, before it sends a byte.</p>
+<p>Two things turned up along the way. The Vault’s certificate had been a
+three-day RSA-1024 default, expired for nearly its whole life, and nothing had
+noticed because nothing checked. And the final review found that the HTTP
+library quietly reconnects after a reset, without re-checking the pin, which
+would have let an attacker relay the handshake and then take over. The
+terminal’s client now cannot open a socket that skips the check.</p>
+<h2 id="a-pin-on-the-staff-key">A PIN on the staff key</h2>
+<p>A staff key is a tag recognised by its NXP signature, and that signature can be
+read and copied by any phone that touches it. So a staff key now needs a PIN,
+set in the Vault and typed on the terminal’s keypad. Three wrong tries lock the
+key, and only a new PIN from the Vault unlocks it. The Vault side is built and
+merged. The terminal side is next.</p>
+<h2 id="a-diary-for-the-trial">A diary for the trial</h2>
+<p>The Kenya trial needs to know how terminals are actually used, and the firmware
+kept no history at all: a sale lived in memory until the next one. The terminal
+now writes small fixed-size event records to a ring on flash and uploads them
+hourly to a Cloudflare Worker, which serves a CSV and a daily summary to the
+trial team. Card numbers are hashed before they leave the device.</p>
+<h2 id="also-this-period">Also this period</h2>
+<p>The terminal accepts every CKB address format and stores the full form, after a
+short-format address broke light-client confirmation. The payment QR can be
+switched to address-only for wallets that reject an amount, and the shortened
+address on screen opens to the full one. Three CI gates that had been red since
+late October are green again, and the repository finally has a README.</p>
+<h2 id="next">Next</h2>
+<p>The terminal is short of one specific kind of memory. Encrypted connections
+need small buffers from internal RAM, and when several run at once they fail.
+A fix is on the bench now and soaking. After that: balance, history and the
+sweep amount straight from the light client, so the Merchant Wallet screen no
+longer needs the phone either, and the terminal side of the staff PIN.</p>  </article>  <footer> <a href="/">blackbox devlog</a> · <a href="/rss.xml">rss</a> · <a href="/feed.json">json</a> · <a href="https://github.com/toastmanau/blackbox-devlog">source</a> </footer> </main> </body></html>

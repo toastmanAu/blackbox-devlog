@@ -6,6 +6,17 @@
   "description": "Dev log for the BlackBox CKB point-of-sale device.",
   "items": [
     {
+      "id": "https://blackbox.wyltekindustries.com/2026-11-12-fortnightly-11-the-terminal-checks-the-chain-itself",
+      "url": "https://blackbox.wyltekindustries.com/2026-11-12-fortnightly-11-the-terminal-checks-the-chain-itself",
+      "title": "Fortnightly #11: the terminal checks the chain itself",
+      "content_text": "The terminal now runs a CKB light client and confirms sales itself, against any public node, with the phone kept as a fallback. Twenty bench sales out of twenty confirmed, then a mainnet sale. Alongside: the link to the Vault is pinned to a key carried in the pairing QR, staff keys get a PIN, the terminal keeps a usage log for the Kenya trial, and two bench hangs turn out to be a receipt printer and a 32-bit timer.",
+      "date_published": "2026-11-12T00:00:00.000Z",
+      "tags": [
+        "wave-2",
+        "firmware"
+      ]
+    },
+    {
       "id": "https://blackbox.wyltekindustries.com/2026-10-22-fortnightly-10-the-terminal-takes-a-card",
       "url": "https://blackbox.wyltekindustries.com/2026-10-22-fortnightly-10-the-terminal-takes-a-card",
       "title": "Fortnightly #10: the terminal learns to take a card",
